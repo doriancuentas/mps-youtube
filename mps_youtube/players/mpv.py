@@ -40,13 +40,13 @@ class mpv(CmdPlayer):
 
         args = config.PLAYERARGS.get.strip().split()
 
-        pd = g.playerargs_defaults['mpv']
+        pd = g.playerargs_defaults.get('mpv')
         # Use new mpv syntax
         # https://github.com/mps-youtube/mps-youtube/issues/1052
         completetitle = '='.join((pd["title"], '"{0}"'.format(self.song.title)))
         util.list_update(completetitle, args)
 
-        if pd['geo'] not in args:
+        if pd.get('geo') not in args:
             geometry = config.WINDOW_SIZE.get or ""
 
             if config.WINDOW_POS.get:
@@ -58,7 +58,7 @@ class mpv(CmdPlayer):
             if geometry:
                 # Use new mpv syntax
                 # See: https://github.com/mps-youtube/mps-youtube/issues/1052
-                newgeometry = '='.join((pd['geo'], geometry))
+                newgeometry = '='.join((pd.get('geo'), geometry))
                 util.list_update(newgeometry, args)
 
         # handle no audio stream available
@@ -70,7 +70,7 @@ class mpv(CmdPlayer):
             util.list_update(pd["fs"], args)
 
         # prevent ffmpeg issue (https://github.com/mpv-player/mpv/issues/579)
-        if not self.video and self.stream['ext'] == "m4a":
+        if not self.video and self.stream.get('ext') == "m4a":
             util.dbg("%susing ignidx flag%s")
             util.list_update(pd["ignidx"], args)
 
@@ -95,7 +95,7 @@ class mpv(CmdPlayer):
         if self.softrepeat:
             util.list_update("--loop-file", args)
 
-        return [self.player] + args + [self.stream['url']]
+        return [self.player] + args + [self.stream.get('url')]
 
     def clean_up(self):
         if self.input_file:
@@ -184,12 +184,12 @@ class mpv(CmdPlayer):
                         s.send(json.dumps(cmd).encode() + b'\n')
                         observe_full = True
 
-                    if resp.get('event') == 'property-change' and resp['id'] == 1:
-                        if resp['data'] is not None:
-                            elapsed_s = int(resp['data'])
+                    if resp.get('event') == 'property-change' and resp.get('id') == 1:
+                        if resp.get('data') is not None:
+                            elapsed_s = int(resp.get('data'))
 
-                    elif resp.get('event') == 'property-change' and resp['id'] == 2:
-                        volume_level = int(resp['data'])
+                    elif resp.get('event') == 'property-change' and resp.get('id') == 2:
+                        volume_level = int(resp.get('data'))
 
                     if(volume_level and volume_level != g.volume):
                         g.volume = volume_level

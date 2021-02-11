@@ -45,11 +45,11 @@ def _search(progtext, qs=None, msg=None, failmsg=None):
 
             if not wdata2.get('nextPageToken'):
                 break
-            qs['pageToken'] = wdata2['nextPageToken']
+            qs['pageToken'] = wdata2.get('nextPageToken')
             wdata2 = pafy.call_gdata('search', qs)
 
     # The youtube search api returns a maximum of 500 results
-    length = min(wdata['pageInfo']['totalResults'], 500)
+    length = min(wdata.get('pageInfo').get('totalResults'), 500)
     slicer = util.IterSlicer(iter_songs(), length)
 
     paginatesongs(slicer, length=length, msg=msg, failmsg=failmsg,
@@ -138,7 +138,7 @@ def channelfromname(user):
               'key': config.API_KEY.get}
 
         try:
-            userinfo = pafy.call_gdata('channels', qs)['items']
+            userinfo = pafy.call_gdata('channels', qs).get('items')
             if len(userinfo) > 0:
                 snippet = userinfo[0].get('snippet', {})
                 channel_id = userinfo[0].get('id', user)
@@ -360,9 +360,9 @@ def pl_search(term, page=0, splash=True, is_user=False):
 
         id_list = [i.get('id', {}).get('playlistId')
                     for i in pldata.get('items', ())
-                    if i['id']['kind'] == 'youtube#playlist']
+                    if i.get('id').get('kind') == 'youtube#playlist']
 
-        result_count = min(pldata['pageInfo']['totalResults'], 500)
+        result_count = min(pldata.get('pageInfo').get('totalResults'), 500)
 
     qs = {'part': 'contentDetails,snippet',
           'maxResults': 50}
@@ -378,7 +378,7 @@ def pl_search(term, page=0, splash=True, is_user=False):
     playlists = get_pl_from_json(pldata)[:util.getxy().max_results]
 
     if is_user:
-        result_count = pldata['pageInfo']['totalResults']
+        result_count = pldata.get('pageInfo').get('totalResults')
 
     if playlists:
         g.last_search_query = (pl_search, {"term": term, "is_user": is_user})
@@ -399,7 +399,7 @@ def get_pl_from_json(pldata):
     """ Process json playlist data. """
 
     try:
-        items = pldata['items']
+        items = pldata.get('items')
 
     except KeyError:
         items = []
@@ -407,14 +407,14 @@ def get_pl_from_json(pldata):
     results = []
 
     for item in items:
-        snippet = item['snippet']
+        snippet = item.get('snippet')
         results.append(dict(
             link=item["id"],
             size=item["contentDetails"]["itemCount"],
             title=snippet["title"],
             author=snippet["channelTitle"],
             created=snippet["publishedAt"],
-            updated=snippet['publishedAt'], #XXX Not available in API?
+            updated=snippet.get('publishedAt'), #XXX Not available in API?
             description=snippet["description"]))
 
     return results
@@ -447,7 +447,7 @@ def get_tracks_from_json(jsons):
     # fetch detailed information about items from videos API
     id_list = [get_track_id_from_json(i)
                 for i in items
-                if i['id']['kind'] == 'youtube#video']
+                if i.get('id').get('kind') == 'youtube#video']
 
     qs = {'part':'contentDetails,statistics,snippet',
           'id': ','.join(id_list)}
